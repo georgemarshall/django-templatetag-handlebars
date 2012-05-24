@@ -114,25 +114,21 @@ class HandlebarsNode(VerbatimNode):
         {% endtplhandlebars %}
     
     """
-    def __init__(self, template_id, text_and_nodes):
+    def __init__(self, text_and_nodes, template_id=None):
         super(HandlebarsNode, self).__init__(text_and_nodes)
         self.template_id = template_id
     
     def render(self, context):
         output = super(HandlebarsNode, self).render(context)
         return """
-        <script id="%s" type="text/x-handlebars-template">
-        %s
-        </script>""" % (self.template_id, output)
+        <script type="text/x-handlebars">
+            %s
+        </script>
+        """ % output
 
 @register.tag
 def tplhandlebars(parser, token):
     text_and_nodes = verbatim_tags(parser, token, endtagname='endtplhandlebars')
     # Extract template id from token
     tokens = token.split_contents()
-    stripquote = lambda s: s[1:-1] if s[:1]=='"' else s
-    try:
-        tag_name, template_id = map(stripquote , tokens[:2])
-    except ValueError:
-        raise template.TemplateSyntaxError, "%s tag requires exactly one argument" % token.split_contents()[0]
-    return HandlebarsNode(template_id, text_and_nodes)
+    return HandlebarsNode(text_and_nodes)
